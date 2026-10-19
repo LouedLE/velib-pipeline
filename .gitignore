@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Données : stockées sur la branche `data`, jamais sur main
+data/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/*.duckdb
+dbt/*.duckdb.wal
+dbt/.user.yml

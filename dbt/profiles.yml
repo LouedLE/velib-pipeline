@@ -1,0 +1,7 @@
+velib:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'velib.duckdb') }}"
+      threads: 4

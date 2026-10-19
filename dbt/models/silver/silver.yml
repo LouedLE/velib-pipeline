@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: stg_station_status
+    description: Disponibilité par station et par collecte, typée, dédoublonnée, avec indicateur de fraîcheur.
+    columns:
+      - name: status_key
+        description: Clé technique station + horodatage de collecte.
+        tests: [unique, not_null]
+      - name: station_id
+        tests: [not_null]
+      - name: snapshot_at
+        description: Horodatage UTC de la collecte.
+        tests: [not_null]
+      - name: bikes_available
+        tests:
+          - not_null
+          - between:
+              arguments: {min_value: 0, max_value: 200}
+      - name: docks_available
+        tests:
+          - between:
+              arguments: {min_value: 0, max_value: 200}
+      - name: staleness_minutes
+        description: Minutes écoulées entre la dernière remontée de la station et la collecte.
+      - name: is_stale
+        description: Vrai si la station n'a rien remonté depuis plus de stale_after_minutes.
+
+  - name: stg_station_information
+    description: Dernière version connue de chaque station du référentiel.
+    columns:
+      - name: station_id
+        tests: [unique, not_null]
+      - name: capacity
+        tests:
+          - between:
+              arguments: {min_value: 0, max_value: 200}
+      - name: latitude
+        tests:
+          - between:
+              arguments: {min_value: 48.6, max_value: 49.1}
+      - name: longitude
+        tests:
+          - between:
+              arguments: {min_value: 2.0, max_value: 2.7}
+
+  - name: int_valid_status
+    description: Remontées exploitables pour l'analyse (station en service, donnée fraîche, station référencée).

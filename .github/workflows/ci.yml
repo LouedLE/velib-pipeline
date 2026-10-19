@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Installer les dépendances
+        run: uv sync --all-extras
+      - name: Lint
+        run: uv run ruff check .
+      - name: Données simulées
+        run: uv run velib-demo --days 3
+      - name: Transformations et tests dbt
+        run: cd dbt && uv run dbt build --profiles-dir .
+      - name: Export gold
+        run: uv run velib-export
+      - name: Tests Python et dashboard
+        run: uv run pytest -q

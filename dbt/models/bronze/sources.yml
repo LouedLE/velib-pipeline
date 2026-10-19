@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: Instantanés bruts des flux GBFS Vélib, un fichier Parquet par collecte.
+    tables:
+      - name: station_status
+        description: Disponibilité des vélos et des bornes, station par station.
+        meta:
+          external_location: >-
+            read_parquet('{{ env_var('VELIB_DATA_DIR', '../data') }}/bronze/station_status/*/*.parquet', hive_partitioning = true, union_by_name = true)
+      - name: station_information
+        description: Référentiel des stations (nom, coordonnées, capacité).
+        meta:
+          external_location: >-
+            read_parquet('{{ env_var('VELIB_DATA_DIR', '../data') }}/bronze/station_information/*/*.parquet', hive_partitioning = true, union_by_name = true)

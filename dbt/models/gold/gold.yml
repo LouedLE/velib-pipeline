@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: dim_station
+    description: Référentiel des stations actives (capacité supérieure à zéro).
+    columns:
+      - name: station_id
+        tests: [unique, not_null]
+
+  - name: mart_station_reliability
+    description: Part du temps où chaque station est vide ou pleine, donc inutilisable pour un usager.
+    columns:
+      - name: station_id
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_station'), field: station_id}
+      - name: pct_empty
+        tests:
+          - between:
+              arguments: {min_value: 0, max_value: 1}
+      - name: pct_full
+        tests:
+          - between:
+              arguments: {min_value: 0, max_value: 1}
+      - name: pct_unusable
+        description: pct_empty + pct_full.
+        tests:
+          - between:
+              arguments: {min_value: 0, max_value: 1}
+
+  - name: mart_hourly_profile
+    description: Remplissage moyen par station, type de jour et heure de Paris.
+    tests:
+      - unique_combination:
+          arguments:
+            columns: [station_id, day_type, hour_paris]
+    columns:
+      - name: day_type
+        tests:
+          - accepted_values:
+              arguments: {values: ['semaine', 'week-end']}
+      - name: hour_paris
+        tests:
+          - between:
+              arguments: {min_value: 0, max_value: 23}
+
+  - name: mart_network_timeseries
+    description: Totaux réseau à chaque collecte.
+    columns:
+      - name: snapshot_at
+        tests: [unique, not_null]
