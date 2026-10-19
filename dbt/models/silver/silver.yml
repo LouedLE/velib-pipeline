@@ -16,11 +16,11 @@ models:
         tests:
           - not_null
           - between:
-              arguments: {min_value: 0, max_value: 200}
+              arguments: {min_value: 0, max_value: 1000}
       - name: docks_available
         tests:
           - between:
-              arguments: {min_value: 0, max_value: 200}
+              arguments: {min_value: 0, max_value: 1000}
       - name: staleness_minutes
         description: Minutes écoulées entre la dernière remontée de la station et la collecte.
       - name: is_stale
@@ -32,9 +32,10 @@ models:
       - name: station_id
         tests: [unique, not_null]
       - name: capacity
+        description: Places déclarées. Certaines stations événementielles dépassent 400 places, d'où le seuil à 1000.
         tests:
           - between:
-              arguments: {min_value: 0, max_value: 200}
+              arguments: {min_value: 0, max_value: 1000}
       - name: latitude
         tests:
           - between:

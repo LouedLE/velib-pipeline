@@ -32,7 +32,7 @@ flowchart LR
 27 tests dbt tournent à chaque collecte. Si un test bloquant échoue, rien n'est publié.
 
 - Unicité et non-nullité des clés.
-- Bornes de valeurs : vélos entre 0 et 200, coordonnées dans la zone Île-de-France, pourcentages entre 0 et 1.
+- Bornes de valeurs : vélos et capacité entre 0 et 1 000 (des stations événementielles dépassent 400 places), coordonnées dans la zone Île-de-France, pourcentages entre 0 et 1.
 - Cohérence : vélos mécaniques + électriques = total disponible.
 - Intégrité référentielle entre les marts et le référentiel des stations.
 - Avertissement (non bloquant) quand vélos + bornes libres dépassent la capacité déclarée. La source le fait parfois : le test le signale sans arrêter la chaîne.
