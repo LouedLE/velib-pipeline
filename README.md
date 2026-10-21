@@ -4,7 +4,7 @@
 [![Collecte horaire](https://github.com/LouedLE/velib-pipeline/actions/workflows/collect.yml/badge.svg)](https://github.com/LouedLE/velib-pipeline/actions/workflows/collect.yml)
 
 Pipeline de données de bout en bout sur le réseau Vélib Métropole, toutes stations confondues.
-Il collecte l'état du réseau toutes les heures, le transforme avec dbt et DuckDB, et publie un dashboard.
+Il collecte l'état du réseau de façon planifiée, le transforme avec dbt et DuckDB, et publie un dashboard.
 
 **Question traitée :** quelles stations sont inutilisables (vides ou pleines), à quelle heure, et combien de temps ?
 
@@ -14,7 +14,7 @@ Il collecte l'état du réseau toutes les heures, le transforme avec dbt et Duck
 
 ```mermaid
 flowchart LR
-    A[API GBFS Vélib<br/>open data] -->|GitHub Actions<br/>toutes les heures| B[Bronze<br/>Parquet brut]
+    A[API GBFS Vélib<br/>open data] -->|GitHub Actions<br/>planifié| B[Bronze<br/>Parquet brut]
     B -->|dbt + DuckDB| C[Silver<br/>typé, dédoublonné,<br/>fraîcheur]
     C -->|dbt| D[Gold<br/>marts métier]
     D -->|export Parquet| E[Branche data]
@@ -29,7 +29,7 @@ flowchart LR
 
 ## Qualité des données
 
-27 tests dbt tournent à chaque collecte. Si un test bloquant échoue, rien n'est publié.
+Une trentaine de tests dbt tournent à chaque collecte. Si un test bloquant échoue, rien n'est publié.
 
 - Unicité et non-nullité des clés.
 - Bornes de valeurs : vélos et capacité entre 0 et 1 000 (des stations événementielles dépassent 400 places), coordonnées dans la zone Île-de-France, pourcentages entre 0 et 1.
@@ -37,11 +37,11 @@ flowchart LR
 - Intégrité référentielle entre les marts et le référentiel des stations.
 - Avertissement (non bloquant) quand vélos + bornes libres dépassent la capacité déclarée. La source le fait parfois : le test le signale sans arrêter la chaîne.
 
-Une station dont la dernière remontée date de plus de 60 minutes est marquée périmée et exclue des indicateurs. Sans ce filtre, une station en panne figée à 0 vélo gonflerait le taux de stations vides.
+Une station dont la dernière remontée date de plus de 60 minutes est marquée périmée et exclue des indicateurs. Une station fermée (ni location ni dépôt) est aussi exclue des taux vide et pleine : elle affiche 0 vélo et 0 borne libre, et serait sinon comptée vide et pleine à la fois. Son taux de fermeture est suivi à part (`pct_closed`). Sans ce filtre, une station en panne figée à 0 vélo gonflerait le taux de stations vides.
 
 ## Choix techniques
 
-- **DuckDB plutôt qu'un entrepôt cloud** : le volume tient sur une machine (une ligne par station et par heure, quelques dizaines de milliers de lignes par jour), zéro coût, zéro serveur.
+- **DuckDB plutôt qu'un entrepôt cloud** : le volume tient sur une machine (une ligne par station et par collecte, environ 1 500 lignes par collecte), zéro coût, zéro serveur.
 - **Parquet partitionné par date** : lecture rapide par DuckDB, fichiers compacts.
 - **Branche `data` réécrite à chaque collecte** : un seul commit écrasé, l'historique Git ne grossit pas.
 - **Identifiants de station en texte** : certains dépassent 2^31 et seraient tronqués en entier 32 bits.
@@ -75,8 +75,8 @@ tests/                tests Python (pytest)
 ## Limites connues
 
 - GitHub désactive les workflows planifiés après 60 jours sans activité sur le dépôt.
-- Les horaires GitHub Actions ne sont pas garantis à la minute : certaines collectes arrivent en retard ou sautent.
-- Une collecte par heure ne capte pas les rotations rapides en heure de pointe.
+- La collecte est planifiée toutes les heures, mais GitHub Actions exécute les tâches planifiées au mieux : en pratique, une collecte toutes les 3 à 6 heures. Les profils horaires demandent donc plusieurs semaines de données pour couvrir chaque heure.
+- Même à une collecte par heure, les rotations rapides en heure de pointe resteraient invisibles.
 
 ## Source
 

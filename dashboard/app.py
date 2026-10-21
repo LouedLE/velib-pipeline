@@ -31,7 +31,10 @@ def load(table: str) -> pd.DataFrame:
     return pd.read_parquet(io.BytesIO(response.content))
 
 
-reliability = load("mart_station_reliability")
+all_stations = load("mart_station_reliability")
+# Les stations fermées sur toute la période n'ont pas d'indicateur d'usage.
+reliability = all_stations[all_stations["n_snapshots"] > 0]
+closed = all_stations[all_stations["pct_closed"] >= 0.5]
 hourly = load("mart_hourly_profile")
 network = load("mart_network_timeseries")
 
@@ -42,10 +45,11 @@ st.caption(
     "Une station est inutilisable quand elle est vide (pas de vélo) ou pleine (pas de borne libre)."
 )
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 col1.metric("Stations suivies", f"{len(reliability)}")
 col2.metric("Temps moyen à vide", f"{reliability['pct_empty'].mean():.1%}")
 col3.metric("Temps moyen pleine", f"{reliability['pct_full'].mean():.1%}")
+col4.metric("Stations fermées la moitié du temps ou plus", f"{len(closed)}")
 
 st.subheader("Carte des stations")
 threshold = st.slider("Afficher les stations inutilisables plus de X % du temps", 0, 100, 0, step=5)

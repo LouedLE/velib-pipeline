@@ -11,4 +11,4 @@ def test_dashboard_renders_without_error():
 
     app = AppTest.from_file(str(GOLD.parents[1] / "dashboard" / "app.py"), default_timeout=60).run()
     assert not app.exception
-    assert len(app.metric) == 3
+    assert len(app.metric) == 4

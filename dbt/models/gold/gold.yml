@@ -25,7 +25,13 @@ models:
           - between:
               arguments: {min_value: 0, max_value: 1}
       - name: pct_unusable
-        description: pct_empty + pct_full.
+        description: pct_empty + pct_full, calculé sur les seules remontées où la station est ouverte.
+        tests:
+          - between:
+              arguments: {min_value: 0, max_value: 1}
+
+      - name: pct_closed
+        description: Part des collectes où la station est installée mais fermée (ni location ni dépôt).
         tests:
           - between:
               arguments: {min_value: 0, max_value: 1}
